@@ -1,0 +1,5 @@
+config/*
+!config/.gitkeep
+node_modules
+mylist.json
+watch-my-lists.json
