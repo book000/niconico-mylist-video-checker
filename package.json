@@ -16,7 +16,7 @@
   "devDependencies": {
     "config": "3.3.7",
     "@types/config": "0.0.41",
-    "@types/node": "16.11.42",
+    "@types/node": "16.11.43",
     "@typescript-eslint/eslint-plugin": "5.30.4",
     "@typescript-eslint/parser": "5.30.4",
     "axios": "0.27.2",
