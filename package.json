@@ -1,4 +1,6 @@
 {
+  "name": "niconico-mylist-video-checker",
+  "version": "1.0.0",
   "scripts": {
     "build": "ts-node ./src/main.ts",
     "dev": "ts-node-dev ./src/main.ts",

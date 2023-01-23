@@ -72,8 +72,9 @@ async function sendMessageForDiscord(
   )
 }
 
-; (async () => {
-  const watchMyListsPath = process.env.WATCH_MY_LISTS_PATH || 'watch-my-lists.json'
+;(async () => {
+  const watchMyListsPath =
+    process.env.WATCH_MY_LISTS_PATH || 'watch-my-lists.json'
   const mylistPath = process.env.MY_LIST_PATH || 'mylist.json'
 
   const watchMyLists = JSON.parse(fs.readFileSync(watchMyListsPath, 'utf8'))
