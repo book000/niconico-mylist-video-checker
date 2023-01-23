@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    volumes:
+      - type: bind
+        source: ./config/
+        target: /app/config/
+      - type: bind
+        source: ./data/
+        target: /data/
+    init: true

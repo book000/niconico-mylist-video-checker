@@ -72,14 +72,15 @@ async function sendMessageForDiscord(
   )
 }
 
-;(async () => {
-  const watchMyLists = JSON.parse(
-    fs.readFileSync('watch-my-lists.json', 'utf8')
-  )
+; (async () => {
+  const watchMyListsPath = process.env.WATCH_MY_LISTS_PATH || 'watch-my-lists.json'
+  const mylistPath = process.env.MY_LIST_PATH || 'mylist.json'
+
+  const watchMyLists = JSON.parse(fs.readFileSync(watchMyListsPath, 'utf8'))
   let notified: { [key: number]: string[] } = {}
-  const initMode = !fs.existsSync('mylist.json')
-  if (fs.existsSync('mylist.json')) {
-    notified = JSON.parse(fs.readFileSync('mylist.json', 'utf8'))
+  const initMode = !fs.existsSync(mylistPath)
+  if (fs.existsSync(mylistPath)) {
+    notified = JSON.parse(fs.readFileSync(mylistPath, 'utf8'))
   }
   for (const listId of watchMyLists) {
     const mylist = await getMylist(listId)
@@ -123,5 +124,5 @@ async function sendMessageForDiscord(
       }
     }
   }
-  fs.writeFileSync('mylist.json', JSON.stringify(notified))
+  fs.writeFileSync(mylistPath, JSON.stringify(notified))
 })()
