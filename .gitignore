@@ -1,3 +1,5 @@
+dist/
+output/
 config/*
 !config/.gitkeep
 node_modules

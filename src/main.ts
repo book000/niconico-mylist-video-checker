@@ -72,7 +72,7 @@ async function sendMessageForDiscord(
   )
 }
 
-;(async () => {
+async function main() {
   const watchMyListsPath =
     process.env.WATCH_MY_LISTS_PATH || 'watch-my-lists.json'
   const mylistPath = process.env.MY_LIST_PATH || 'mylist.json'
@@ -126,4 +126,11 @@ async function sendMessageForDiscord(
     }
   }
   fs.writeFileSync(mylistPath, JSON.stringify(notified))
+}
+
+;(async () => {
+  await main().catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
 })()

@@ -1,6 +1,8 @@
 {
+  "ts-node": { "files": true },
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es6",
+    "module": "commonjs",
     "moduleResolution": "Node",
     "lib": ["ESNext", "ESNext.AsyncIterable", "DOM"],
     "outDir": "./dist",
