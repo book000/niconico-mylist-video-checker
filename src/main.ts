@@ -1,6 +1,7 @@
 import axios from 'axios'
 import config from 'config'
 import fs from 'fs'
+import { Logger } from './logger'
 import { NicoNicoMyList } from './models/NicoNicoMyList'
 import { NicoNicoMyListItem } from './models/NicoNicoMyListItem'
 
@@ -73,9 +74,13 @@ async function sendMessageForDiscord(
 }
 
 async function main() {
+  const logger = Logger.configure('main')
+
   const watchMyListsPath =
     process.env.WATCH_MY_LISTS_PATH || 'watch-my-lists.json'
   const mylistPath = process.env.MY_LIST_PATH || 'mylist.json'
+  logger.debug(`watchMyListsPath: ${watchMyListsPath}`)
+  logger.debug(`mylistPath: ${mylistPath}`)
 
   const watchMyLists = JSON.parse(fs.readFileSync(watchMyListsPath, 'utf8'))
   let notified: { [key: number]: string[] } = {}
@@ -83,20 +88,22 @@ async function main() {
   if (fs.existsSync(mylistPath)) {
     notified = JSON.parse(fs.readFileSync(mylistPath, 'utf8'))
   }
+
   for (const listId of watchMyLists) {
     const mylist = await getMylist(listId)
     const newItems = mylist.items.filter(
       (item: NicoNicoMyListItem) => !notified[mylist.id]?.includes(item.watchId)
     )
     if (newItems.length > 0) {
-      console.log(
-        `${mylist.name}に${newItems.length}件の新しい動画が追加されました`
+      logger.info(
+        `🆕 ${mylist.name} に ${newItems.length} 件の新しい動画が追加されました`
       )
       if (!notified[mylist.id]) {
         notified[mylist.id] = []
       }
+
       for (const item of newItems) {
-        console.log(`${item.title} (${item.duration}秒)`)
+        logger.info(`🎥 ${item.title} (${item.duration}秒)`)
         if (!initMode) {
           sendMessageForDiscord('', {
             title: `${item.title} (${item.duration}秒)`,
@@ -129,8 +136,9 @@ async function main() {
 }
 
 ;(async () => {
+  const logger = Logger.configure('main')
   await main().catch((e) => {
-    console.error(e)
+    logger.error('Error', e as Error)
     process.exit(1)
   })
 })()
