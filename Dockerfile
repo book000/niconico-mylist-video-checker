@@ -34,6 +34,7 @@ RUN chmod +x entrypoint.sh
 ENV NODE_ENV=production
 ENV WATCH_MY_LISTS_PATH=/data/watch-my-lists.json
 ENV MY_LIST_PATH=/data/mylist.json
+ENV LOG_DIR=/data/logs
 
 VOLUME [ "/app/config/", "/data/" ]
 
