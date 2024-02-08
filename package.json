@@ -37,7 +37,7 @@
     "eslint-plugin-n": "16.6.2",
     "eslint-plugin-promise": "6.1.1",
     "logform": "2.6.0",
-    "prettier": "2.8.8",
+    "prettier": "3.2.5",
     "ts-node": "10.9.2",
     "ts-node-dev": "2.0.0",
     "typescript": "5.3.3",
