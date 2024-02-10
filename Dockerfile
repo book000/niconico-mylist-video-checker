@@ -1,20 +1,7 @@
-FROM node:21-alpine as builder
+FROM node:20-alpine
 
-WORKDIR /app
-
-COPY package.json .
-COPY yarn.lock .
-
-RUN echo network-timeout 600000 > .yarnrc && \
-  yarn install --frozen-lockfile && \
-  yarn cache clean
-
-COPY src src
-COPY tsconfig.json .
-
-RUN yarn package
-
-FROM node:21-alpine as runner
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME/bin:$PATH"
 
 # hadolint ignore=DL3018
 RUN apk update && \
@@ -22,20 +9,26 @@ RUN apk update && \
   apk add --update --no-cache tzdata && \
   cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
   echo "Asia/Tokyo" > /etc/timezone && \
-  apk del tzdata
+  apk del tzdata && \
+  corepack enable
 
 WORKDIR /app
 
-COPY --from=builder /app/output .
+COPY pnpm-lock.yaml ./
+
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm fetch
+
+COPY package.json tsconfig.json ./
+COPY src src
+
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --offline
 
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
-ENV NODE_ENV=production
-ENV WATCH_MY_LISTS_PATH=/data/watch-my-lists.json
-ENV MY_LIST_PATH=/data/mylist.json
-ENV LOG_DIR=/data/logs
-
-VOLUME [ "/app/config/", "/data/" ]
+ENV NODE_ENV production
+ENV WATCH_MY_LISTS_PATH /data/watch-my-lists.json
+ENV MY_LIST_PATH /data/mylist.json
+ENV LOG_DIR /data/logs
 
 ENTRYPOINT [ "/app/entrypoint.sh" ]
