@@ -1,4 +1,4 @@
-import { NicoNicoMyListItem } from './NicoNicoMyListItem'
+import { NicoNicoMyListItem } from './niconico-mylistitem'
 
 export class NicoNicoMyList {
   id: number

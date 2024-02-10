@@ -1,9 +1,9 @@
 import axios from 'axios'
-import config from 'config'
-import fs from 'fs'
-import { Logger } from './logger'
-import { NicoNicoMyList } from './models/NicoNicoMyList'
-import { NicoNicoMyListItem } from './models/NicoNicoMyListItem'
+import fs from 'node:fs'
+import { Discord, Logger } from '@book000/node-utils'
+import { NicoNicoMyList } from './models/niconico-mylist'
+import { NicoNicoMyListItem } from './models/niconico-mylistitem'
+import { NMVCConfiguration } from './config'
 
 async function getMylist(listId: number, page = 1): Promise<NicoNicoMyList> {
   const response = await axios.get(
@@ -47,30 +47,9 @@ async function getMylist(listId: number, page = 1): Promise<NicoNicoMyList> {
   )
   if (result.hasNext) {
     const nextPage = await getMylist(listId, page + 1)
-    mylist.items = mylist.items.concat(nextPage.items)
+    mylist.items = [...mylist.items, ...nextPage.items]
   }
   return mylist
-}
-
-async function sendMessageForDiscord(
-  content: string,
-  embed: { [key: string]: any }
-) {
-  const channelId = config.get('discordChannelId') as string
-  const token = config.get('discordToken') as string
-  await axios.post(
-    `https://discord.com/api/channels/${channelId}/messages`,
-    {
-      content,
-      embed,
-    },
-    {
-      headers: {
-        Authorization: `Bot ${token}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  )
 }
 
 async function main() {
@@ -81,6 +60,24 @@ async function main() {
   const mylistPath = process.env.MY_LIST_PATH || 'mylist.json'
   logger.debug(`watchMyListsPath: ${watchMyListsPath}`)
   logger.debug(`mylistPath: ${mylistPath}`)
+
+  const config = new NMVCConfiguration('./data/config.json')
+  config.load()
+  if (!config.validate()) {
+    logger.error('❌ Config is invalid')
+    for (const failure of config.getValidateFailures()) {
+      logger.error('- ' + failure)
+    }
+    return
+  }
+
+  const discord = new Discord(config.get('discord'))
+
+  if (!fs.existsSync(watchMyListsPath)) {
+    logger.error(`❌ watchMyListsPath (${watchMyListsPath}) file not found`)
+    process.exitCode = 1
+    return
+  }
 
   const watchMyLists = JSON.parse(fs.readFileSync(watchMyListsPath, 'utf8'))
   let notified: { [key: number]: string[] } = {}
@@ -105,25 +102,29 @@ async function main() {
       for (const item of newItems) {
         logger.info(`🎥 ${item.title} (${item.duration}秒)`)
         if (!initMode) {
-          sendMessageForDiscord('', {
-            title: `${item.title} (${item.duration}秒)`,
-            url: `https://www.nicovideo.jp/watch/${item.watchId}`,
-            color: 0x00ff00,
-            fields: [
+          await discord.sendMessage({
+            embeds: [
               {
-                name: 'タイトル',
-                value: item.title,
-                inline: true,
-              },
-              {
-                name: '動画長',
-                value: `${item.duration}秒`,
-                inline: true,
-              },
-              {
-                name: '投稿者',
-                value: item.ownerName,
-                inline: true,
+                title: `${item.title} (${item.duration}秒)`,
+                url: `https://www.nicovideo.jp/watch/${item.watchId}`,
+                color: 0x00_ff_00,
+                fields: [
+                  {
+                    name: 'タイトル',
+                    value: item.title,
+                    inline: true,
+                  },
+                  {
+                    name: '動画長',
+                    value: `${item.duration}秒`,
+                    inline: true,
+                  },
+                  {
+                    name: '投稿者',
+                    value: item.ownerName,
+                    inline: true,
+                  },
+                ],
               },
             ],
           })
@@ -137,8 +138,9 @@ async function main() {
 
 ;(async () => {
   const logger = Logger.configure('main')
-  await main().catch((e) => {
-    logger.error('Error', e as Error)
+  await main().catch((error) => {
+    logger.error('Error', error as Error)
+    // eslint-disable-next-line unicorn/no-process-exit
     process.exit(1)
   })
 })()
