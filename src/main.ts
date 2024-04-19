@@ -4,9 +4,10 @@ import { Discord, Logger } from '@book000/node-utils'
 import { NicoNicoMyList } from './models/niconico-mylist'
 import { NicoNicoMyListItem } from './models/niconico-mylistitem'
 import { NMVCConfiguration } from './config'
+import { NicoNicoMyListResponse } from './models/response'
 
 async function getMylist(listId: number, page = 1): Promise<NicoNicoMyList> {
-  const response = await axios.get(
+  const response = await axios.get<NicoNicoMyListResponse>(
     `https://nvapi.nicovideo.jp/v2/mylists/${listId}?pageSize=100&page=${page}`,
     {
       headers: {
@@ -56,8 +57,8 @@ async function main() {
   const logger = Logger.configure('main')
 
   const watchMyListsPath =
-    process.env.WATCH_MY_LISTS_PATH || 'watch-my-lists.json'
-  const mylistPath = process.env.MY_LIST_PATH || 'mylist.json'
+    process.env.WATCH_MY_LISTS_PATH ?? 'watch-my-lists.json'
+  const mylistPath = process.env.MY_LIST_PATH ?? 'mylist.json'
   logger.debug(`watchMyListsPath: ${watchMyListsPath}`)
   logger.debug(`mylistPath: ${mylistPath}`)
 
@@ -80,7 +81,7 @@ async function main() {
   }
 
   const watchMyLists = JSON.parse(fs.readFileSync(watchMyListsPath, 'utf8'))
-  let notified: { [key: number]: string[] } = {}
+  let notified: Record<number, string[] | undefined> = {}
   const initMode = !fs.existsSync(mylistPath)
   if (fs.existsSync(mylistPath)) {
     notified = JSON.parse(fs.readFileSync(mylistPath, 'utf8'))
@@ -88,16 +89,13 @@ async function main() {
 
   for (const listId of watchMyLists) {
     const mylist = await getMylist(listId)
-    const newItems = mylist.items.filter(
-      (item: NicoNicoMyListItem) => !notified[mylist.id]?.includes(item.watchId)
+    const newItems = mylist.items.filter((item: NicoNicoMyListItem) =>
+      notified[mylist.id] ? !notified[mylist.id]?.includes(item.watchId) : true
     )
     if (newItems.length > 0) {
       logger.info(
         `🆕 ${mylist.name} に ${newItems.length} 件の新しい動画が追加されました`
       )
-      if (!notified[mylist.id]) {
-        notified[mylist.id] = []
-      }
 
       for (const item of newItems) {
         logger.info(`🎥 ${item.title} (${item.duration}秒)`)
@@ -129,7 +127,10 @@ async function main() {
             ],
           })
         }
-        notified[mylist.id].push(item.watchId)
+        if (!notified[mylist.id]) {
+          notified[mylist.id] = []
+        }
+        notified[mylist.id]?.push(item.watchId)
       }
     }
   }
@@ -138,7 +139,7 @@ async function main() {
 
 ;(async () => {
   const logger = Logger.configure('main')
-  await main().catch((error) => {
+  await main().catch((error: unknown) => {
     logger.error('Error', error as Error)
     // eslint-disable-next-line unicorn/no-process-exit
     process.exit(1)
