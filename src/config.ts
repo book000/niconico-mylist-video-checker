@@ -5,7 +5,7 @@ interface Config {
 }
 
 export class NMVCConfiguration extends ConfigFramework<Config> {
-  protected validates(): { [key: string]: (config: Config) => boolean } {
+  protected validates(): Record<string, (config: Config) => boolean> {
     return {
       'discord is required': (options) => 'discord' in options,
       'discord is object': (options) => typeof options.discord === 'object',
