@@ -1,7 +1,7 @@
 {
   "postCreateCommand": "pnpm install",
   "name": "niconico-mylist-video-checker",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:0-18",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-18",
   "customizations": {
     "extensions": [
       "esbenp.prettier-vscode"
