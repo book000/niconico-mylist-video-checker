@@ -1,7 +1,12 @@
 {
-  "postCreateCommand": "pnpm install",
   "name": "niconico-mylist-video-checker",
   "image": "mcr.microsoft.com/devcontainers/typescript-node:1-18",
+  "otherPortsAttributes": {
+    "onAutoForward": "silent"
+  },
+  "postCreateCommand": "corepack enable",
+  "postStartCommand": "pnpm install",
+  "waitFor": "postCreateCommand",
   "customizations": {
     "extensions": [
       "esbenp.prettier-vscode"
@@ -37,9 +42,5 @@
         "esbenp.prettier-vscode"
       ]
     }
-  },
-  "waitFor": "postCreateCommand",
-  "otherPortAttributes": {
-    "onAutoForward": "silent"
   }
 }
