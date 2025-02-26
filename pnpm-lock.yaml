@@ -18,8 +18,8 @@ importers:
         specifier: 22.13.5
         version: 22.13.5
       axios:
-        specifier: 1.7.9
-        version: 1.7.9
+        specifier: 1.8.1
+        version: 1.8.1
       eslint:
         specifier: 9.21.0
         version: 9.21.0
