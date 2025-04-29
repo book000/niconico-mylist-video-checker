@@ -127,9 +127,7 @@ async function main() {
             ],
           })
         }
-        if (!notified[mylist.id]) {
-          notified[mylist.id] = []
-        }
+        notified[mylist.id] ??= []
         notified[mylist.id]?.push(item.watchId)
       }
     }
