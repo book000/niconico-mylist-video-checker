@@ -25,3 +25,9 @@
 - ログに機密情報を出力しない。
 
 ## リポジトリ固有
+- **runtime**: Node.js (tsx for development)
+- **docker_support**: True
+**api_integrations:**
+  - NicoNico API
+  - Discord API
+- **config_format**: JSON (data/ directory)

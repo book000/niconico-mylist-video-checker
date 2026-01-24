@@ -15,7 +15,16 @@
 - 日本語と英数字の間には半角スペースを入れる。
 
 ## プロジェクト概要
-- 目的: A tool to fetch data from NicoNico video's MyList and send notifications to Discord about new videos.
+Monitors NicoNico video mylist and sends Discord notifications for new videos.
+
+### 技術スタック
+- **言語**: TypeScript
+- **フレームワーク**: Node.js
+- **パッケージマネージャー**: pnpm@10.28.1
+- **主要な依存関係**:
+  - axios@1.13.2
+  - @book000/node-utils@1.24.32
+  - @book000/eslint-config@1.12.40
 
 ## コーディング規約
 - フォーマット: 既存設定（ESLint / Prettier / formatter）に従う。
@@ -23,12 +32,26 @@
 - コメント言語: 日本語
 - エラーメッセージ: 英語
 
-## 開発コマンド
+### 開発コマンド
 ```bash
-# 依存関係のインストール
+# install
 pnpm install
 
-# 開発 / テスト / Lint は README を確認してください
+# dev
+tsx watch ./src/main.ts
+
+# build
+None - runs as script
+
+# test
+None
+
+# lint
+run-z lint:prettier,lint:eslint,lint:tsc
+
+# fix
+run-z fix:prettier,fix:eslint
+
 ```
 
 ## 注意事項
@@ -37,3 +60,9 @@ pnpm install
 - 既存のプロジェクトルールがある場合はそれを優先する。
 
 ## リポジトリ固有
+- **runtime**: Node.js (tsx for development)
+- **docker_support**: True
+**api_integrations:**
+  - NicoNico API
+  - Discord API
+- **config_format**: JSON (data/ directory)
