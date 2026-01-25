@@ -9,7 +9,7 @@
 - **会話言語**: 日本語
 - **コード内コメント**: 日本語
 - **エラーメッセージ**: 英語
-- **日本語と英数字の間**: 必ず半角スペースを挿入
+- **日本語と英数字の間**: 新規追加・更新する日本語テキストでは、日本語と英数字の間に必ず半角スペースを挿入する（既存ドキュメントは原則そのまま・修正時に順次対応）
 - **コミット規約**: [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) に従う
   - 形式: `<type>(<scope>): <description>`
   - `<description>` は日本語で記載
@@ -45,7 +45,7 @@ pnpm install
 
 - **コーディング規約**: Prettier と ESLint の設定に従う
 - **TypeScript**: strict モード有効、`skipLibCheck` での回避禁止
-- **docstring**: 関数やインターフェースに JSDoc を日本語で記載
+- **JSDoc**: 関数やインターフェースに JSDoc を日本語で記載
 
 ### 4. テストと Lint/Format 実行
 
