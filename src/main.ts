@@ -150,7 +150,7 @@ async function main() {
 ;(async () => {
   const logger = Logger.configure('main')
   await main().catch((err: unknown) => {
-    logger.error('Error', err as Error)
+    logger.error('Error', err instanceof Error ? err : new Error(String(err)))
     // eslint-disable-next-line unicorn/no-process-exit
     process.exit(1)
   })
