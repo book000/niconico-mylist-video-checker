@@ -6,6 +6,13 @@ import { NicoNicoMyListItem } from './models/niconico-mylistitem'
 import { NMVCConfiguration } from './config'
 import { NicoNicoMyListResponse } from './models/response'
 
+/**
+ * マイリスト ID を指定して、全ページの動画情報を取得します。
+ *
+ * @param listId 取得対象のマイリスト ID
+ * @param page 取得対象のページ番号
+ * @returns 取得したマイリスト情報
+ */
 async function getMylist(listId: number, page = 1): Promise<NicoNicoMyList> {
   const response = await axios.get<NicoNicoMyListResponse>(
     `https://nvapi.nicovideo.jp/v2/mylists/${listId}?pageSize=100&page=${page}`,
@@ -53,6 +60,11 @@ async function getMylist(listId: number, page = 1): Promise<NicoNicoMyList> {
   return mylist
 }
 
+/**
+ * 設定を読み込み、監視対象のマイリストを確認して Discord 通知を送信します。
+ *
+ * @returns 処理完了後に解決される Promise
+ */
 async function main() {
   const logger = Logger.configure('main')
 
@@ -137,8 +149,8 @@ async function main() {
 
 ;(async () => {
   const logger = Logger.configure('main')
-  await main().catch((error: unknown) => {
-    logger.error('Error', error as Error)
+  await main().catch((err: unknown) => {
+    logger.error('Error', err as Error)
     // eslint-disable-next-line unicorn/no-process-exit
     process.exit(1)
   })
