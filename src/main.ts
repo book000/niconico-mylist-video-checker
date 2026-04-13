@@ -1,4 +1,3 @@
-import axios from 'axios'
 import fs from 'node:fs'
 import { Discord, Logger } from '@book000/node-utils'
 import { NicoNicoMyList } from './models/niconico-mylist'
@@ -7,7 +6,7 @@ import { NMVCConfiguration } from './config'
 import { NicoNicoMyListResponse } from './models/response'
 
 async function getMylist(listId: number, page = 1): Promise<NicoNicoMyList> {
-  const response = await axios.get<NicoNicoMyListResponse>(
+  const response = await fetch(
     `https://nvapi.nicovideo.jp/v2/mylists/${listId}?pageSize=100&page=${page}`,
     {
       headers: {
@@ -17,10 +16,11 @@ async function getMylist(listId: number, page = 1): Promise<NicoNicoMyList> {
       },
     }
   )
-  if (response.status !== 200) {
+  if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText}`)
   }
-  const result = response.data.data.mylist
+  const data = (await response.json()) as NicoNicoMyListResponse
+  const result = data.data.mylist
   const mylist = new NicoNicoMyList(
     result.id,
     result.name,
