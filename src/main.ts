@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import { Discord, Logger } from '@book000/node-utils'
 import { NicoNicoMyList } from './models/niconico-mylist'
 import { NicoNicoMyListItem } from './models/niconico-mylistitem'
-import { NMVCConfiguration } from './config'
+import { NMVCConfig } from './config'
 import { NicoNicoMyListResponse } from './models/response'
 
 async function getMylist(listId: number, page = 1): Promise<NicoNicoMyList> {
@@ -62,7 +62,7 @@ async function main() {
   logger.debug(`watchMyListsPath: ${watchMyListsPath}`)
   logger.debug(`mylistPath: ${mylistPath}`)
 
-  const config = new NMVCConfiguration('./data/config.json')
+  const config = new NMVCConfig('./data/config.json')
   config.load()
   if (!config.validate()) {
     logger.error('❌ Config is invalid')
@@ -72,17 +72,17 @@ async function main() {
     return
   }
 
-  const discord = new Discord(config.get('discord'))
-
   if (!fs.existsSync(watchMyListsPath)) {
     logger.error(`❌ watchMyListsPath (${watchMyListsPath}) file not found`)
     process.exitCode = 1
     return
   }
 
+  const discord = new Discord(config.get('discord'))
+
   const watchMyLists = JSON.parse(fs.readFileSync(watchMyListsPath, 'utf8'))
   let notified: Record<number, string[] | undefined> = {}
-  const initMode = !fs.existsSync(mylistPath)
+  const isInitMode = !fs.existsSync(mylistPath)
   if (fs.existsSync(mylistPath)) {
     notified = JSON.parse(fs.readFileSync(mylistPath, 'utf8'))
   }
@@ -90,7 +90,9 @@ async function main() {
   for (const listId of watchMyLists) {
     const mylist = await getMylist(listId)
     const newItems = mylist.items.filter((item: NicoNicoMyListItem) =>
-      notified[mylist.id] ? !notified[mylist.id]?.includes(item.watchId) : true
+      Object.hasOwn(notified, mylist.id)
+        ? !notified[mylist.id]?.includes(item.watchId)
+        : true
     )
     if (newItems.length > 0) {
       logger.info(
@@ -99,7 +101,7 @@ async function main() {
 
       for (const item of newItems) {
         logger.info(`🎥 ${item.title} (${item.duration}秒)`)
-        if (!initMode) {
+        if (!isInitMode) {
           await discord.sendMessage({
             embeds: [
               {
@@ -137,9 +139,11 @@ async function main() {
 
 ;(async () => {
   const logger = Logger.configure('main')
-  await main().catch((error: unknown) => {
+  try {
+    await main()
+  } catch (error) {
     logger.error('Error', error as Error)
     // eslint-disable-next-line unicorn/no-process-exit
     process.exit(1)
-  })
+  }
 })()

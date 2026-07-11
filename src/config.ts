@@ -4,7 +4,7 @@ interface Config {
   discord: DiscordOptions
 }
 
-export class NMVCConfiguration extends ConfigFramework<Config> {
+export class NMVCConfig extends ConfigFramework<Config> {
   protected validates(): Record<string, (config: Config) => boolean> {
     return {
       'discord is required': (options) => 'discord' in options,
