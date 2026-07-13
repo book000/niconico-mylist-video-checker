@@ -72,13 +72,13 @@ async function main() {
     return
   }
 
-  const discord = new Discord(config.get('discord'))
-
   if (!fs.existsSync(watchMyListsPath)) {
     logger.error(`❌ watchMyListsPath (${watchMyListsPath}) file not found`)
     process.exitCode = 1
     return
   }
+
+  const discord = new Discord(config.get('discord'))
 
   const watchMyLists = JSON.parse(fs.readFileSync(watchMyListsPath, 'utf8'))
   let notified: Record<number, string[] | undefined> = {}
@@ -90,7 +90,9 @@ async function main() {
   for (const listId of watchMyLists) {
     const mylist = await getMylist(listId)
     const newItems = mylist.items.filter((item: NicoNicoMyListItem) =>
-      notified[mylist.id] ? !notified[mylist.id]?.includes(item.watchId) : true
+      Object.hasOwn(notified, mylist.id)
+        ? !notified[mylist.id]?.includes(item.watchId)
+        : true
     )
     if (newItems.length > 0) {
       logger.info(
