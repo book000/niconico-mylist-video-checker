@@ -89,52 +89,51 @@ async function main() {
 
   for (const listId of watchMyLists) {
     const mylist = await getMylist(listId)
-    const newItems = mylist.items.filter((item: NicoNicoMyListItem) =>
-      Object.hasOwn(notified, mylist.id)
-        ? !notified[mylist.id]?.includes(item.watchId)
-        : true
+    const newItems = mylist.items.filter(
+      (item: NicoNicoMyListItem) =>
+        !Object.hasOwn(notified, mylist.id) ||
+        !notified[mylist.id]?.includes(item.watchId)
     )
-    if (newItems.length > 0) {
-      logger.info(
-        `🆕 ${mylist.name} に ${newItems.length} 件の新しい動画が追加されました`
-      )
+    if (newItems.length === 0) continue
+    logger.info(
+      `🆕 ${mylist.name} に ${newItems.length} 件の新しい動画が追加されました`
+    )
 
-      for (const item of newItems) {
-        logger.info(`🎥 ${item.title} (${item.duration}秒)`)
-        if (initMode) {
-          notified[mylist.id] ??= []
-          notified[mylist.id]?.push(item.watchId)
-          continue
-        }
-        await discord.sendMessage({
-          embeds: [
-            {
-              title: `${item.title} (${item.duration}秒)`,
-              url: `https://www.nicovideo.jp/watch/${item.watchId}`,
-              color: 0x00_ff_00,
-              fields: [
-                {
-                  name: 'タイトル',
-                  value: item.title,
-                  inline: true,
-                },
-                {
-                  name: '動画長',
-                  value: `${item.duration}秒`,
-                  inline: true,
-                },
-                {
-                  name: '投稿者',
-                  value: item.ownerName,
-                  inline: true,
-                },
-              ],
-            },
-          ],
-        })
+    for (const item of newItems) {
+      logger.info(`🎥 ${item.title} (${item.duration}秒)`)
+      if (initMode) {
         notified[mylist.id] ??= []
         notified[mylist.id]?.push(item.watchId)
+        continue
       }
+      await discord.sendMessage({
+        embeds: [
+          {
+            title: `${item.title} (${item.duration}秒)`,
+            url: `https://www.nicovideo.jp/watch/${item.watchId}`,
+            color: 0x00_ff_00,
+            fields: [
+              {
+                name: 'タイトル',
+                value: item.title,
+                inline: true,
+              },
+              {
+                name: '動画長',
+                value: `${item.duration}秒`,
+                inline: true,
+              },
+              {
+                name: '投稿者',
+                value: item.ownerName,
+                inline: true,
+              },
+            ],
+          },
+        ],
+      })
+      notified[mylist.id] ??= []
+      notified[mylist.id]?.push(item.watchId)
     }
   }
   fs.writeFileSync(mylistPath, JSON.stringify(notified))
