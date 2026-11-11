@@ -12,7 +12,7 @@ import { NicoNicoMyListResponse } from './models/response'
  * @param listId MyList ID
  * @param page Page number, starting at 1
  * @returns The MyList with the items of all pages
- * @throws Error when the API responds with a non-2xx status
+ * @throws Error when the API responds with a non-2xx status; network and JSON parse errors also reject
  */
 async function getMylist(listId: number, page = 1): Promise<NicoNicoMyList> {
   const response = await fetch(

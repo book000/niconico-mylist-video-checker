@@ -37,13 +37,13 @@ There is no test framework. Node.js is pinned in `.node-version` and pnpm in `pa
 - `data/config.json` (or `$CONFIG_PATH`): Discord settings. Read through `ConfigFramework` from `@book000/node-utils`.
 - `watch-my-lists.json` (or `$WATCH_MY_LISTS_PATH`): JSON array of MyList IDs. A missing file is an error (exit code 1).
 - `mylist.json` (or `$MY_LIST_PATH`): `{ "<mylistId>": ["<watchId>", ...] }`, the notified videos. If it does not exist, the run is in init mode: videos are recorded but no Discord message is sent. It is written once at the end of a run.
-- `data/`, `watch-my-lists.json` and `mylist.json` are git-ignored. Never commit them or any Discord token or webhook URL.
+- Only `data/` is git-ignored. When running locally, `watch-my-lists.json` and `mylist.json` default to the repository root and are not ignored, so never commit them or any Discord token or webhook URL (in Docker they live under `/data`).
 
 ## Conventions
 
 - Use `Logger` and `Discord` from `@book000/node-utils`; do not use `console.log`.
 - HTTP uses the native `fetch`. Requests to `nvapi.nicovideo.jp` need the `X-Frontend-Id` / `X-Frontend-Version` headers.
-- Info logs start with an emoji (`🆕`, `🎥`) and error logs with `❌`; keep this consistent.
+- Info logs start with an emoji (`🆕`, `🎥`) and the main error logs with `❌`; keep new messages consistent with these.
 - Do not enable `skipLibCheck` in `tsconfig.json`.
 - Write JSDoc for functions and interfaces.
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/) and branches follow [Conventional Branch](https://conventional-branch.github.io) short form (`feat/...`, `fix/...`).

@@ -21,4 +21,4 @@ Runtime log and error messages are English too; the Japanese Discord embed text 
 - Style already enforced by Prettier, ESLint and `tsc` in CI.
 - The leading emoji in log messages, and `process.exit(1)` in `src/main.ts` (marked with `eslint-disable-next-line`).
 - Native `fetch` instead of an HTTP library.
-- `data/config.json`, `watch-my-lists.json` and `mylist.json` missing from the repository (runtime files, git-ignored).
+- `data/config.json`, `watch-my-lists.json` and `mylist.json` missing from the repository (runtime files; they must stay uncommitted).
