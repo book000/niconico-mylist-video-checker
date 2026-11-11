@@ -9,7 +9,7 @@ export class NMVCConfiguration extends ConfigFramework<Config> {
     return {
       'discord is required': (options) => 'discord' in options,
       'discord is object': (options) => typeof options.discord === 'object',
-      // token と channelId または、webhookUrl が必要
+      // Either token and channelId, or webhookUrl, is required
       'discord.token and discord.channelId or discord.webhookUrl is required': (
         options
       ) =>

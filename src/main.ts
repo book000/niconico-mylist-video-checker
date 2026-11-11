@@ -5,6 +5,15 @@ import { NicoNicoMyListItem } from './models/niconico-mylistitem'
 import { NMVCConfiguration } from './config'
 import { NicoNicoMyListResponse } from './models/response'
 
+/**
+ * Fetches a MyList from the NicoNico API, following `hasNext` recursively so that
+ * lists with more than 100 items (the page size) are returned in full.
+ *
+ * @param listId MyList ID
+ * @param page Page number, starting at 1
+ * @returns The MyList with the items of all pages
+ * @throws Error when the API responds with a non-2xx status; network and JSON parse errors also reject
+ */
 async function getMylist(listId: number, page = 1): Promise<NicoNicoMyList> {
   const response = await fetch(
     `https://nvapi.nicovideo.jp/v2/mylists/${listId}?pageSize=100&page=${page}`,
@@ -82,6 +91,7 @@ async function main() {
 
   const watchMyLists = JSON.parse(fs.readFileSync(watchMyListsPath, 'utf8'))
   let notified: Record<number, string[] | undefined> = {}
+  // First run (no state file): record the current items without notifying
   const initMode = !fs.existsSync(mylistPath)
   if (fs.existsSync(mylistPath)) {
     notified = JSON.parse(fs.readFileSync(mylistPath, 'utf8'))
