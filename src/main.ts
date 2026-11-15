@@ -78,6 +78,7 @@ async function main() {
     for (const failure of config.getValidateFailures()) {
       logger.error('- ' + failure)
     }
+    process.exitCode = 1
     return
   }
 
