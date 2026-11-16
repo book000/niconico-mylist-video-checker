@@ -4,6 +4,7 @@ import { NicoNicoMyList } from './models/niconico-mylist'
 import { NicoNicoMyListItem } from './models/niconico-mylistitem'
 import { NMVCConfiguration } from './config'
 import { NicoNicoMyListResponse } from './models/response'
+import { writeFileAtomic } from './write-file-atomic'
 
 /**
  * Fetches a MyList from the NicoNico API, following `hasNext` recursively so that
@@ -95,7 +96,15 @@ async function main() {
   // First run (no state file): record the current items without notifying
   const initMode = !fs.existsSync(mylistPath)
   if (fs.existsSync(mylistPath)) {
-    notified = JSON.parse(fs.readFileSync(mylistPath, 'utf8'))
+    try {
+      notified = JSON.parse(fs.readFileSync(mylistPath, 'utf8'))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      throw new Error(
+        `Failed to read notification state ${mylistPath}: ${message}. Fix or remove the file to recover; removing it re-runs initialization and sends no notifications for current items.`,
+        { cause: error }
+      )
+    }
   }
 
   for (const listId of watchMyLists) {
@@ -147,7 +156,7 @@ async function main() {
       notified[mylist.id]?.push(item.watchId)
     }
   }
-  fs.writeFileSync(mylistPath, JSON.stringify(notified))
+  writeFileAtomic(mylistPath, JSON.stringify(notified))
 }
 
 ;(async () => {
