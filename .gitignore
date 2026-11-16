@@ -134,3 +134,5 @@ dist
 
 # other
 data/
+watch-my-lists.json
+mylist.json
