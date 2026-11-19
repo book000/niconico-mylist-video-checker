@@ -6,30 +6,55 @@ import { NMVCConfiguration } from './config'
 import { NicoNicoMyListResponse } from './models/response'
 import { writeFileAtomic } from './write-file-atomic'
 
+const REQUEST_TIMEOUT_MS = 30_000
+const LIST_TIMEOUT_MS = 120_000
+
 /**
  * Fetches a MyList from the NicoNico API, following `hasNext` recursively so that
  * lists with more than 100 items (the page size) are returned in full.
  *
+ * Each request, including its body read, must finish within 30 seconds, and all
+ * pages of one MyList together within 120 seconds.
+ *
  * @param listId MyList ID
  * @param page Page number, starting at 1
+ * @param listSignal Deadline shared by all pages of the list; created by the first call, so callers should not pass it
  * @returns The MyList with the items of all pages
- * @throws Error when the API responds with a non-2xx status; network and JSON parse errors also reject
+ * @throws Error when the API responds with a non-2xx status or a deadline is exceeded (`Timed out fetching MyList <id> page <n>`); network and JSON parse errors also reject
  */
-async function getMylist(listId: number, page = 1): Promise<NicoNicoMyList> {
-  const response = await fetch(
-    `https://nvapi.nicovideo.jp/v2/mylists/${listId}?pageSize=100&page=${page}`,
-    {
-      headers: {
-        'X-Frontend-Id': '6',
-        'X-Frontend-Version': '0',
-        'X-Niconico-Language': 'ja-jp',
-      },
+async function getMylist(
+  listId: number,
+  page = 1,
+  listSignal = AbortSignal.timeout(LIST_TIMEOUT_MS)
+): Promise<NicoNicoMyList> {
+  let data: NicoNicoMyListResponse
+  try {
+    const response = await fetch(
+      `https://nvapi.nicovideo.jp/v2/mylists/${listId}?pageSize=100&page=${page}`,
+      {
+        headers: {
+          'X-Frontend-Id': '6',
+          'X-Frontend-Version': '0',
+          'X-Niconico-Language': 'ja-jp',
+        },
+        signal: AbortSignal.any([
+          listSignal,
+          AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        ]),
+      }
+    )
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`)
     }
-  )
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`)
+    data = (await response.json()) as NicoNicoMyListResponse
+  } catch (error) {
+    if (error instanceof Error && error.name === 'TimeoutError') {
+      throw new Error(`Timed out fetching MyList ${listId} page ${page}`, {
+        cause: error,
+      })
+    }
+    throw error
   }
-  const data = (await response.json()) as NicoNicoMyListResponse
   const result = data.data.mylist
   const mylist = new NicoNicoMyList(
     result.id,
@@ -57,7 +82,7 @@ async function getMylist(listId: number, page = 1): Promise<NicoNicoMyList> {
     )
   )
   if (result.hasNext) {
-    const nextPage = await getMylist(listId, page + 1)
+    const nextPage = await getMylist(listId, page + 1, listSignal)
     mylist.items = [...mylist.items, ...nextPage.items]
   }
   return mylist
