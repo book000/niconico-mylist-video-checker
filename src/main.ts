@@ -92,18 +92,24 @@ async function main() {
 
   const watchMyLists = JSON.parse(fs.readFileSync(watchMyListsPath, 'utf8'))
   let notified: Record<number, string[] | undefined> = {}
-  // First run (no state file): record the current items without notifying
-  const initMode = !fs.existsSync(mylistPath)
   if (fs.existsSync(mylistPath)) {
     notified = JSON.parse(fs.readFileSync(mylistPath, 'utf8'))
   }
 
+  const failedListIds: number[] = []
   for (const listId of watchMyLists) {
-    const mylist = await getMylist(listId)
+    let mylist: NicoNicoMyList
+    try {
+      mylist = await getMylist(listId)
+    } catch (error) {
+      logger.error(`❌ Failed to fetch MyList ${listId}`, error as Error)
+      failedListIds.push(listId)
+      continue
+    }
+    const isNewList = !Object.hasOwn(notified, mylist.id)
+    notified[mylist.id] ??= []
     const newItems = mylist.items.filter(
-      (item: NicoNicoMyListItem) =>
-        !Object.hasOwn(notified, mylist.id) ||
-        !notified[mylist.id]?.includes(item.watchId)
+      (item: NicoNicoMyListItem) => !notified[mylist.id]?.includes(item.watchId)
     )
     if (newItems.length === 0) continue
     logger.info(
@@ -112,8 +118,7 @@ async function main() {
 
     for (const item of newItems) {
       logger.info(`🎥 ${item.title} (${item.duration}秒)`)
-      if (initMode) {
-        notified[mylist.id] ??= []
+      if (isNewList) {
         notified[mylist.id]?.push(item.watchId)
         continue
       }
@@ -143,11 +148,16 @@ async function main() {
           },
         ],
       })
-      notified[mylist.id] ??= []
       notified[mylist.id]?.push(item.watchId)
     }
   }
   fs.writeFileSync(mylistPath, JSON.stringify(notified))
+  if (failedListIds.length === 0) return
+
+  logger.error(
+    `❌ Failed to fetch ${failedListIds.length} MyList(s): ${failedListIds.join(', ')}`
+  )
+  process.exitCode = 1
 }
 
 ;(async () => {
