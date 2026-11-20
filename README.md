@@ -60,7 +60,7 @@ Create these files in the `data` directory.
 docker compose up -d
 ```
 
-The container runs the check, waits 10 minutes, and repeats. The notified video IDs are stored in `data/mylist.json`; delete it to start over (the next run will not notify). Each MyList is initialized separately: a MyList that is not in the file yet is recorded without notifying, and a MyList that fails to fetch keeps its stored state.
+The container runs the check, waits 10 minutes, and repeats. The notified video IDs are stored in `data/mylist.json`; delete it to start over (the next run will not notify). The file is replaced atomically; if it becomes corrupt, the run exits with an error naming the file, and you must fix or delete it (deleting it restarts initialization without notifying). Each MyList is initialized separately: a MyList that is not in the file yet is recorded without notifying, and a MyList that fails to fetch keeps its stored state.
 
 ## Configuration
 
