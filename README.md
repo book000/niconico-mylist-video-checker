@@ -7,7 +7,8 @@ A tool that fetches NicoNico video MyLists and sends a Discord notification when
 - Fetches the videos of the MyLists you watch (all pages)
 - Sends a Discord embed (title, duration, uploader) for each new video, using a bot token and channel ID or a webhook URL
 - Remembers notified videos and checks again every 10 minutes
-- On the first run, it only records the current videos and does not notify
+- The first time a MyList is checked (first run, or after adding it to the watch list), it only records the current videos and does not notify
+- If fetching a MyList fails, it logs the error, skips that list, and still processes the others; the run then exits with code 1
 
 ## Installation
 
@@ -59,7 +60,7 @@ Create these files in the `data` directory.
 docker compose up -d
 ```
 
-The container runs the check, waits 10 minutes, and repeats. The notified video IDs are stored in `data/mylist.json`; delete it to start over (the next run will not notify). The file is replaced atomically; if it becomes corrupt, the run exits with an error naming the file, and you must fix or delete it (deleting it restarts initialization without notifying).
+The container runs the check, waits 10 minutes, and repeats. The notified video IDs are stored in `data/mylist.json`; delete it to start over (the next run will not notify). The file is replaced atomically; if it becomes corrupt, the run exits with an error naming the file, and you must fix or delete it (deleting it restarts initialization without notifying). Each MyList is initialized separately: a MyList that is not in the file yet is recorded without notifying, and a MyList that fails to fetch keeps its stored state.
 
 ## Configuration
 
